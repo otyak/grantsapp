@@ -1,31 +1,33 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
-def init_db():
-    conn = sqlite3.connect(DB_FILE)
-    cur = conn.cursor()
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS grants (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            description TEXT,
-            status TEXT,
-            industry TEXT,
-            location TEXT,
-            funding_amount REAL,
-            business_contribution_percentage REAL,
-            opening_date TEXT,
-            closing_date TEXT,
-            keywords TEXT
-        )
-    ''')
-    conn.commit()
-    conn.close()
 
 app = Flask(__name__)
 CORS(app)
 
 DB_FILE = "grants.db"
+
+
+# create migration.txt add true to the line below
+# check if created
+migrated = 'migration.txt'
+
+# check if file exists and contains 'true'
+import subprocess
+try:
+    with open(migrated, 'r') as f:
+        if 'true' in f.read():
+            print("Database already migrated.")
+        else:
+            raise FileNotFoundError
+except FileNotFoundError:
+    print("Migrating database...")
+    # Run import_csv.py to populate the database
+    subprocess.run(['python', 'import_csv.py'])
+    # Mark migration as done
+    with open(migrated, 'w') as f:
+        f.write('true')
+
 
 @app.route('/api/grants')
 def get_grants():
@@ -116,7 +118,6 @@ def get_stats():
     })
 
 import os
-init_db()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
