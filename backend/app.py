@@ -1,6 +1,26 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    cur = conn.cursor()
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS grants (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT,
+            status TEXT,
+            industry TEXT,
+            location TEXT,
+            funding_amount REAL,
+            business_contribution_percentage REAL,
+            opening_date TEXT,
+            closing_date TEXT,
+            keywords TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
 app = Flask(__name__)
 CORS(app)
@@ -96,6 +116,7 @@ def get_stats():
     })
 
 import os
+init_db()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
