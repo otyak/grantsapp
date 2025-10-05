@@ -35,34 +35,36 @@ function App() {
   });
 
   useEffect(() => {
+    const fetchGrants = async () => {
+      try {
+        const params = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== null && value !== undefined && value !== '') {
+            params.append(key, value);
+          }
+        });
+
+        const response = await axios.get(`${API_BASE_URL}/grants?${params}`);
+        setGrants(response.data);
+      } catch (error) {
+        console.error('Error fetching grants:', error);
+      }
+    };
+
+    const fetchStats = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/stats`);
+        setStats(response.data);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+
     fetchGrants();
     fetchStats();
   }, [filters]);
 
-  const fetchGrants = async () => {
-    try {
-      const params = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== null && value !== undefined && value !== '') {
-          params.append(key, value);
-        }
-      });
-
-      const response = await axios.get(`${API_BASE_URL}/grants?${params}`);
-      setGrants(response.data);
-    } catch (error) {
-      console.error('Error fetching grants:', error);
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/stats`);
-      setStats(response.data);
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  };
+  
 
   const handleSearch = (query) => {
     setFilters((prev) => ({ ...prev, query }));

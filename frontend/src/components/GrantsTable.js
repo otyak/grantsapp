@@ -1,8 +1,15 @@
-  import React from 'react';
+  import React, { useEffect } from 'react';
   import { DataGrid } from '@mui/x-data-grid';
-  import { Paper, Chip, Stack } from '@mui/material';
+  import { Paper, Chip, Stack, Box } from '@mui/material';
+  import Dialog from '@mui/material/Dialog';
+  import DialogTitle from '@mui/material/DialogTitle';
+  import DialogContent from '@mui/material/DialogContent';
+  import DialogActions from '@mui/material/DialogActions';
+  import Button from '@mui/material/Button';
+  import Typography from '@mui/material/Typography';
 
   function GrantsTable({ grants }) {
+    const [selectedRowData, setSelectedRowData] = React.useState(null);
     const columns = [
       { field: 'title', headerName: 'Title', width: 300 },
       { field: 'status', headerName: 'Status', width: 120,
@@ -66,6 +73,13 @@
     return (
       <Paper sx={{ height: 600, width: '100%', mt: 2 }}>
         <DataGrid
+          onRowSelectionModelChange={(item) => {
+            console.log(item);
+            // get the selected row data
+            const selectedRowData = grants.find((grant) => grant.id === item[0]);
+            console.log(selectedRowData);
+            setSelectedRowData(selectedRowData);
+          }}
           rows={grants}
           columns={columns}
           pageSize={10}
@@ -73,6 +87,7 @@
           disableSelectionOnClick
           density="comfortable"
         />
+        <ModalBox  onClose={() => setSelectedRowData(null)} grant={selectedRowData} />
       </Paper>
     );
   }
@@ -93,3 +108,107 @@
     } 
 
   }
+
+
+  function ModalBox({ onClose, grant }) {
+    const [modalGrant, setModalGrant] = React.useState(grant);
+
+    useEffect(() => {
+      console.log('ModalBox grant data:', grant);
+      setModalGrant(grant);
+    }, [grant]);
+
+    if(!modalGrant) {
+      return null;
+    }
+
+    return (
+      <Dialog
+        open={Boolean(modalGrant)}
+        onClose={onClose}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            padding: 2,
+            backgroundColor: '#f9f9f9',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 'bold',
+            fontSize: '1.5rem',
+            color: '#333',
+            borderBottom: '1px solid #ddd',
+            marginBottom: 1,
+          }}
+        >
+          {modalGrant.title}
+        </DialogTitle>
+
+        <DialogContent >
+          <Box component="table" sx={{ width: '100%', mb: 2, borderCollapse: 'collapse' }}>
+            <tbody>
+              <tr>
+                <td><strong>Status:</strong></td>
+                <td>
+                  <Chip
+                    label={modalGrant.status}
+                    color={
+                      modalGrant.status?.toLowerCase() === 'open'
+                        ? 'success'
+                        : modalGrant.status?.toLowerCase() === 'upcoming'
+                        ? 'warning'
+                        : 'error'
+                    }
+                    size="small"
+                    sx={{ ml: 1 }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Industry:</strong></td>
+                <td>{modalGrant.industry}</td>
+              </tr>
+              <tr>
+                <td><strong>Location:</strong></td>
+                <td>{modalGrant.location}</td>
+              </tr>
+              <tr>
+                <td><strong>Funding Amount:</strong></td>
+                <td>${modalGrant.funding_amount.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td><strong>Business Contribution:</strong></td>
+                <td>{modalGrant.business_contribution_percentage}%</td>
+              </tr>
+              <tr>
+                <td><strong>Opening Date:</strong></td>
+                <td>{new Date(modalGrant.opening_date).toLocaleDateString()}</td>
+              </tr>
+              <tr>
+                <td><strong>Closing Date:</strong></td>
+                <td>{new Date(modalGrant.closing_date).toLocaleDateString()}</td>
+              </tr>
+              <tr>
+                <td><strong>Keywords:</strong></td>
+                <td>{modalGrant.keywords.join(', ')}</td>
+              </tr>
+              <tr>
+                <td><strong>Description:</strong></td>
+                <td>{modalGrant.description}</td>
+              </tr>
+            </tbody>
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{ justifyContent: 'flex-end', padding: 2 }}>
+          <Button onClick={onClose} color="primary" variant="contained">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  } 
